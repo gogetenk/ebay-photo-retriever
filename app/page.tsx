@@ -473,28 +473,76 @@ export default function Home() {
                           className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                         />
                       </PaginationItem>
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const page = i + 1;
-                        return (
-                          <PaginationItem key={page}>
+                      
+                      {/* First page */}
+                      {currentPage > 3 && (
+                        <>
+                          <PaginationItem>
                             <PaginationLink
                               href="#"
                               onClick={(e) => {
                                 e.preventDefault();
-                                setCurrentPage(page);
+                                setCurrentPage(1);
                               }}
-                              isActive={currentPage === page}
                             >
-                              {page}
+                              1
                             </PaginationLink>
                           </PaginationItem>
-                        );
-                      })}
-                      {totalPages > 5 && (
-                        <PaginationItem>
-                          <span className="px-4 py-2 text-sm">...</span>
-                        </PaginationItem>
+                          {currentPage > 4 && (
+                            <PaginationItem>
+                              <span className="px-4 py-2 text-sm">...</span>
+                            </PaginationItem>
+                          )}
+                        </>
                       )}
+                      
+                      {/* Pages around current page */}
+                      {(() => {
+                        const startPage = Math.max(1, currentPage - 2);
+                        const endPage = Math.min(totalPages, currentPage + 2);
+                        const pages = [];
+                        
+                        for (let page = startPage; page <= endPage; page++) {
+                          pages.push(
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrentPage(page);
+                                }}
+                                isActive={currentPage === page}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        }
+                        return pages;
+                      })()}
+                      
+                      {/* Last page */}
+                      {currentPage < totalPages - 2 && (
+                        <>
+                          {currentPage < totalPages - 3 && (
+                            <PaginationItem>
+                              <span className="px-4 py-2 text-sm">...</span>
+                            </PaginationItem>
+                          )}
+                          <PaginationItem>
+                            <PaginationLink
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(totalPages);
+                              }}
+                            >
+                              {totalPages}
+                            </PaginationLink>
+                          </PaginationItem>
+                        </>
+                      )}
+                      
                       <PaginationItem>
                         <PaginationNext 
                           href="#" 
