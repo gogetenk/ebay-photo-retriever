@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Upload, Play, Pause, Download, FileText, Image, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import NextImage from "next/image";
 
 interface EbayItem {
   "Item number": string;
@@ -48,7 +49,6 @@ export default function Home() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [processedCount, setProcessedCount] = useState(0);
-  const [shouldPause, setShouldPause] = useState(false);
   const pauseRef = useRef(false);
   
   const itemsPerPage = 20;
@@ -118,7 +118,6 @@ export default function Home() {
     if (!csvData.length) return;
     setError(null);
     setProcessingStatus('running');
-    setShouldPause(false);
     pauseRef.current = false;
     setProgress(0);
     const data = [...csvData];
@@ -198,7 +197,7 @@ export default function Home() {
         } else {
           console.log(`⚠️ No images found for item ${id}`);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`❌ Error processing item ${id}:`, error);
       }
       
@@ -240,13 +239,11 @@ export default function Home() {
   const handlePause = () => {
     console.log('🔄 Pause requested');
     pauseRef.current = true;
-    setShouldPause(true);
   };
 
   const handleResume = () => {
     console.log('▶️ Resume requested');
     pauseRef.current = false;
-    setShouldPause(false);
     processItems();
   };
 
@@ -423,14 +420,17 @@ export default function Home() {
                       <TableRow key={i}>
                         <TableCell>
                           {item["Picture1"] ? (
-                            <img 
+                            <NextImage 
                               src={item["Picture1"]} 
-                              alt="Item" 
+                              alt={`eBay item ${extractItemId(item)}`}
+                              width={64}
+                              height={64}
                               className="w-16 h-16 object-cover rounded border" 
+                              unoptimized
                             />
                           ) : (
                             <div className="w-16 h-16 bg-muted rounded border flex items-center justify-center">
-                              <Image className="h-6 w-6 text-muted-foreground" />
+                              <Image className="h-6 w-6 text-muted-foreground" aria-label="No image available" />
                             </div>
                           )}
                         </TableCell>

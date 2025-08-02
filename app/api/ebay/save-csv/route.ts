@@ -23,12 +23,13 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json({ success: true, message: 'CSV saved successfully' });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('CSV save error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       success: false,
       error: 'Failed to save CSV',
-      message: error.message
+      message
     }, { status: 500 });
   }
 }

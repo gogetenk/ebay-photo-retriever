@@ -55,9 +55,10 @@ async function getApplicationToken(): Promise<string> {
     );
     
     return response.data.access_token;
-  } catch (error: any) {
-    console.error('OAuth token error:', error.response?.data || error.message);
-    throw new Error(`Failed to get application token: ${error.response?.data?.error_description || error.message}`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('OAuth token error:', errorMessage);
+    throw new Error(`Failed to get application token: ${errorMessage}`);
   }
 }
 
@@ -74,9 +75,11 @@ async function getItemImagesFromBrowseApi(itemId: string, accessToken: string) {
           'Accept': 'application/json'
         }
       });
-    } catch (directError: any) {
+    } catch (directError: unknown) {
       // If direct call fails, try getItemByLegacyId for legacy item IDs
-      if (directError.response?.status === 404 || directError.response?.status === 400) {
+      const isAxiosError = directError && typeof directError === 'object' && 'response' in directError;
+      const status = isAxiosError ? (directError as { response: { status: number } }).response.status : null;
+      if (status === 404 || status === 400) {
         console.log(`Direct getItem failed for ${itemId}, trying getItemByLegacyId...`);
         
         const legacyEndpoint = EBAY_SANDBOX
@@ -98,7 +101,6 @@ async function getItemImagesFromBrowseApi(itemId: string, accessToken: string) {
     }
 
     const itemData = response.data;
-    console.log('eBay Browse API Response:', JSON.stringify(itemData, null, 2)); // Debug log
     
     const images: string[] = [];
     
@@ -109,7 +111,7 @@ async function getItemImagesFromBrowseApi(itemId: string, accessToken: string) {
     
     // Additional images
     if (itemData.additionalImages && Array.isArray(itemData.additionalImages)) {
-      itemData.additionalImages.forEach((img: any) => {
+      itemData.additionalImages.forEach((img: { imageUrl?: string }) => {
         if (img.imageUrl) {
           images.push(img.imageUrl);
         }
@@ -118,14 +120,18 @@ async function getItemImagesFromBrowseApi(itemId: string, accessToken: string) {
     
     console.log(`Found ${images.length} images for item ${itemId}:`, images);
     return images;
-  } catch (error: any) {
-    console.error(`Browse API error for item ${itemId}:`, error.response?.data || error.message);
+  } catch (error: unknown) {
+    const isAxiosError = error && typeof error === 'object' && 'response' in error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const status = isAxiosError ? (error as { response: { status: number } }).response.status : null;
+    
+    console.error(`Browse API error for item ${itemId}:`, errorMessage);
     
     // Handle specific eBay API errors
-    if (error.response?.status === 404) {
+    if (status === 404) {
       throw new Error(`Item ${itemId} not found`);
     }
-    if (error.response?.status === 400) {
+    if (status === 400) {
       throw new Error(`Invalid item ID: ${itemId}`);
     }
     
@@ -164,17 +170,19 @@ export async function GET(
     let accessToken: string;
     try {
       accessToken = await getApplicationToken();
-    } catch (err: any) {
-      return NextResponse.json({ success: false, error: 'Application Token not configured', message: err.message }, { status: 500 });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      return NextResponse.json({ success: false, error: 'Application Token not configured', message: errorMessage }, { status: 500 });
     }
     
     // Browse API
     let images: string[];
     try {
       images = (await getItemImagesFromBrowseApi(itemId, accessToken)) || [];
-    } catch (err: any) {
-      const code = err.response?.status || 500;
-      const message = err.response?.data || err.message;
+    } catch (err: unknown) {
+      const isAxiosError = err && typeof err === 'object' && 'response' in err;
+      const code = isAxiosError ? (err as { response: { status: number } }).response.status : 500;
+      const message = err instanceof Error ? err.message : 'Unknown error';
       return NextResponse.json({ success: false, error: 'Browse API failure', code, message }, { status: code });
     }
 
@@ -182,10 +190,10 @@ export async function GET(
       success: true,
       images: images || [],
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(`Unhandled error for item ${itemId}:`, err);
-    const code = err.response?.status || 500;
-    const message = err.response?.data?.errors?.map((e: any) => e.message).join('; ') || err.message;
+    const code = 500;
+    const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ success: false, error: 'Processing error', code, message }, { status: code });
   }
 }
