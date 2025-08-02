@@ -4,6 +4,10 @@
 
 *Récupérez automatiquement les images des articles eBay et mettez à jour vos fichiers CSV*
 
+## 🌐 Live Demo
+
+**Try it now:** [https://ebay-photo-retriever.vercel.app/](https://ebay-photo-retriever.vercel.app/)
+
 ---
 
 ## 🌟 Features / Fonctionnalités
@@ -30,13 +34,23 @@
 
 ## 🚀 Quick Start / Démarrage rapide
 
-### 1. Prerequisites / Prérequis
+### Option 1: Use the Live Demo (Recommended)
+
+**Just visit:** [https://ebay-photo-retriever.vercel.app/](https://ebay-photo-retriever.vercel.app/)
+
+- No installation required
+- Ready to use immediately
+- Upload your CSV and start processing
+
+### Option 2: Local Installation
+
+#### Prerequisites / Prérequis
 
 - Node.js 18+ installed
 - eBay Developer Account ([developer.ebay.com](https://developer.ebay.com/))
 - Your eBay CSV export file
 
-### 2. Installation
+#### Installation
 
 ```bash
 # Clone the repository / Clonez le dépôt
@@ -50,7 +64,7 @@ npm install
 cp .env.example .env.local
 ```
 
-### 3. eBay API Configuration / Configuration API eBay
+#### eBay API Configuration / Configuration API eBay
 
 #### Get your eBay credentials / Obtenez vos identifiants eBay:
 
@@ -67,7 +81,7 @@ EBAY_SANDBOX=false
 
 ⚠️ **Important**: Use `EBAY_SANDBOX=true` for testing with sandbox credentials
 
-### 4. Run the application / Lancez l'application
+#### Run the application / Lancez l'application
 
 ```bash
 npm run dev
