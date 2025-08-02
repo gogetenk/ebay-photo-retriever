@@ -225,8 +225,11 @@ export default function Home() {
   };
 
   const downloadCsv = () => {
-    if (!processedCsv) return;
-    const url = URL.createObjectURL(new Blob([processedCsv], { type: "text/csv" }));
+    // Generate current CSV data if processedCsv is not available
+    const csvContent = processedCsv || generateCSV(csvData);
+    if (!csvContent) return;
+    
+    const url = URL.createObjectURL(new Blob([csvContent], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = `ebay-with-photos-${new Date().toISOString().slice(0,10)}.csv`;
@@ -383,7 +386,7 @@ export default function Home() {
                       Start Processing
                     </Button>
                   )}
-                  {processedCsv && (
+                  {csvData.length > 0 && (
                     <Button onClick={downloadCsv} variant="outline">
                       <Download className="h-4 w-4 mr-2" />
                       Download CSV
