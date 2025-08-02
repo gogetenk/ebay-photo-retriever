@@ -30,6 +30,7 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [processedCsv, setProcessedCsv] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
@@ -133,6 +134,21 @@ export default function Home() {
             const csv = generateCSV(data);
             setProcessedCsv(csv);
             
+            // Save CSV to file immediately
+            try {
+              await fetch('/api/ebay/save-csv', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ csvContent: csv }),
+              });
+              setLastSaved(`Item ${id} - ${new Date().toLocaleTimeString()}`);
+              console.log(`💾 CSV file updated for item ${id}`);
+            } catch (saveError: any) {
+              console.error(`❌ Failed to save CSV for item ${id}:`, saveError.message);
+            }
+            
             processed++;
             console.log(`✅ Updated item ${id} with ${json.images.length} images`);
           }
@@ -169,7 +185,7 @@ export default function Home() {
   return (
     <main className="container mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Philatélie Occitanie - eBay CSV Processor</h1>
+        <h1 className="text-2xl font-bold">eBay CSV Processor</h1>
         <p className="text-gray-600 mt-2">
           Importez votre CSV eBay pour récupérer automatiquement les images des items. 
           Les items avec des images existantes seront ignorés.
@@ -186,6 +202,11 @@ export default function Home() {
             Traitement en cours... {progress}% 
             <span className="text-sm text-gray-500">(Les items déjà traités sont ignorés)</span>
           </p>
+          {lastSaved && (
+            <p className="text-center text-xs text-green-600 mb-2">
+              💾 Dernier enregistrement: {lastSaved}
+            </p>
+          )}
           <Progress value={progress} className="h-2" />
         </div>
       )}
